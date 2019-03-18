@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>redek-dp</title>
+
+	<style>
+		body {
+			color: #1A1A1A;
+			font-family: Helvetica, Arial, sans-serif;
+			font-size: 20px;
+			background-color: #ebe8df;
+			overflow-y: scroll;
+		}
+
+		#container {
+			left: auto;
+			width: 35em;
+			margin: 5em auto;
+			background-color: white;
+			padding: 1em 2em 2em 2em;
+		}
+
+		a {
+			color: #c0392b;
+			text-decoration: none;
+		}
+
+		a:hover {
+			text-decoration: underline;
+		}
+
+		address {
+			text-align: right;
+			font-size: 0.75em;
+		}
+
+		section {
+			display: none;
+		}
+
+		pre {
+			background-color: #f8f8f8;
+			border: 1px solid #ddd;
+			overflow: auto;
+			padding: 6px 10px;
+			border-radius: 3px;
+		}
+
+		body.unk section.unk,
+		body.explain section.explain,
+		body.redirect section.redirect,
+		body.error section.error
+		{
+			display: block;
+		}
+
+		ol {
+			list-style-type: none;
+			list-style-type: decimal !ie; /*IE 7- hack*/
+
+			margin: 0;
+			margin-left: 3em;
+			padding: 0;
+
+			counter-reset: li-counter;
+		}
+		ol > li{
+			position: relative;
+			margin-bottom: 20px;
+			padding-left: 0.5em;
+			min-height: 3em;
+			border-left: 2px solid #CCCCCC;
+		}
+		ol > li:before {
+			position: absolute;
+			top: 0;
+			left: -1em;
+			width: 0.8em;
+
+			font-size: 3em;
+			line-height: 1;
+			font-weight: bold;
+			text-align: right;
+			color: #464646;
+
+			content: counter(li-counter);
+			counter-increment: li-counter;
+		}
+
+		input[type="text"] {
+			padding: 10px;
+			border: none;
+			border-bottom: solid 2px #c9c9c9;
+			transition: border 0.3s;
+			outline: none;
+			background-color: #eee;
+			font-size: 1em;
+			width: 80%
+		}
+		input[type="text"]:focus {
+			border-bottom: solid 2px #969696;
+		}
+
+		button {
+			padding: 10px;
+			border: none;
+			border-bottom: solid 2px #c9c9c9;
+			outline: none;
+			background-color: #eee;
+			font-size: 1em;
+			cursor: pointer;
+			width: 10%;
+		}
+		button:hover {
+			background-color: #ddd;
+		}
+		button:active {
+			border-bottom-color: #969696;;
+		}
+
+	</style>
+
+</head>
+<body class="unk">
+
+	<script>
+		var issuesUrl = "https://api.github.com/repos/redek-dp/db/issues";
+
+		var getJson = function(url, cb) {
+			var r = new XMLHttpRequest();
+			r.open("GET", url, true);
+			r.onreadystatechange = function () {
+				if(r.readyState !== 4) return;
+				var json = JSON.parse(r.responseText);
+				cb(r.status, json);
+			};
+			r.send();
+		};
+
+		var getN = function() {
+			return parseInt(window.location.search.substring(1), 10);
+		};
+
+		var fixUrl = function(url) {
+			if(!/^https?:\/\//.test(url)) {
+				return 'http://' + url;
+			}
+			return url;
+		};
+
+		var handleSubmit = function(e) {
+			if (e && e.preventDefault) e.preventDefault();
+			var title = encodeURIComponent(document.getElementById('ipt').value);
+			var body = encodeURIComponent("After creating the issue, construct your shortened URL using n, the issue's number:  https://redek-dp.github.io/?n");
+			if (nextN) {
+				body += encodeURIComponent("\n\nIf nobody beats you to it, your URL will be:  https://redek-dp.github.io/?" + nextN);
+			}
+			var url = 'https://github.com/redek-dp/db/issues/new?title=' + title + '&body=' + body;
+			window.open(url, '_blank');
+			return false;
+		};
+
+		var redirect = function(n) {
+			document.body.className = "redirect";
+			getJson(issuesUrl + '/' + n, function(status, json) {
+				if(status === 200) {
+					var url = fixUrl(json.title);
+					window.location.replace(url);
+				} else {
+					document.body.className = "error";
+					console.log(json.message);
+					document.getElementById('error-message').innerHTML = json.message;
+				}
+			})
+		};
+
+		var nextN = null;
+
+		var explain = function() {
+			document.body.className = "explain";
+			getJson(issuesUrl, function(status, json) {
+				nextN = json[0].number + 1;
+				var ul = document.getElementById('existing');
+				var i;
+				for(i = 0; i < json.length; i++) {
+					var number = json[i].number;
+					var url = fixUrl(json[i].title);
+					var short = 'redek-dp.github.io/?' + number;
+					var li = document.createElement('li');
+					var a = document.createElement('a');
+					a.href = 'https://' + short;
+					a.textContent = short + ' → ' + url;
+					li.appendChild(a);
+					ul.appendChild(li);
+				}
+			})
+		};
+
+		var main = function() {
+			var n = getN();
+			if (n) {
+				redirect(n);
+			} else {
+				explain();
+			}
+		};
+
+		setTimeout(main, 1);
+	</script>
+
+	<div id="container">
+		<h1><a href="/">redek-dp</a></h1>
+
+		<section class="unk">
+			<p>Loading...</p>
+		</section>
+
+		<section class="explain">
+			<p>
+				Proof of concept URL shortener with no back-end servers (apart from GitHub's!).
+			</p>
+			<ol>
+				<li>
+					Create an issue on the <a href="https://github.com/redek-dp/db/issues">redek-dp/db</a> repository.
+					The <strong>title</strong> of the issue should be the URL you want to redirect to.
+					<p>
+						<form onSubmit="return handleSubmit();">
+							<input id="ipt" type="text" placeholder="http://paste.your/url/here">
+							<button type="submit">go</button>
+						</form>
+					</p>
+				</li>
+				<li>Note <strong>n</strong>, the <strong>issue's number</strong>.</li>
+				<li>
+					Construct your shortened URL using <strong>n</strong>:
+					<code>https://redek-dp.github.io/?n</code>
+				</li>
+			</ol>
+			<p>
+				Existing URLs:
+			</p>
+			<ul id="existing">
+
+			</ul>
+
+		</section>
+
+		<section class="error">
+			<p>
+				Oops, I think that's a bad URL.
+			</p>
+			<p>
+				Correct URLs are in the format <code>https://redek-dp.github.io/?n</code>,
+				where n is an issue on the <a href="https://github.com/redek-dp/db/issues">redek-dp/db</a> repository.
+				The title of the issue is used as the URL to redirect.
+			</p>
+			<p>
+				This is the error message you got:
+			</p>
+			<pre id="error-message">
+
+			</pre>
+		</section>
+
+		<section class="redirect">
+			<p>
+				Now redirecting...
+			</p>
+		</section>
+
+		<address>
+			<div class="author">
+				A quick hack by <a href="https://github.com/">5</a>
+			</div>
+			<div class="source">
+				Source code available <a href="https://github.com/">on GitHub</a>
+			</div>
+		</address>
+	</div>
+
+</body>
+</html>
+
