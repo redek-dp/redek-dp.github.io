@@ -152,9 +152,9 @@
 		var handleSubmit = function(e) {
 			if (e && e.preventDefault) e.preventDefault();
 			var title = encodeURIComponent(document.getElementById('ipt').value);
-			var body = encodeURIComponent("After creating the issue, construct your shortened URL using n, the issue's number:  https://redek-dp.github.io/?n");
+			var body = encodeURIComponent("Depois de criar construa seu URL encurtado usando n, o número :  https://redek-dp.github.io/?n");
 			if (nextN) {
-				body += encodeURIComponent("\n\nIf nobody beats you to it, your URL will be:  https://redek-dp.github.io/?" + nextN);
+				body += encodeURIComponent("\n\n seu URL será:  https://redek-dp.github.io/?" + nextN);
 			}
 			var url = 'https://github.com/redek-dp/db/issues/new?title=' + title + '&body=' + body;
 			window.open(url, '_blank');
@@ -218,16 +218,16 @@
 
 		<section class="explain">
 			<p>
-				Proof of concept URL shortener with no back-end servers (apart from GitHub's!).
+				Encurtador de URL de prova de conceito sem servidores de back-end (além do GitHub!).
 			</p>
 			<ol>
 				<li>
-					Create an issue on the <a href="https://github.com/redek-dp/db/issues">redek-dp/db</a> repository.
-					The <strong>title</strong> of the issue should be the URL you want to redirect to.
+					Create an issue on the <a href="https://github.com/redek-dp/db/issues">redek-dp/db</a> repositório.
+					o <strong>title</strong> do problema deve ser o URL para o qual você deseja redirecionar.
 					<p>
 						<form onSubmit="return handleSubmit();">
 							<input id="ipt" type="text" placeholder="http://paste.your/url/here">
-							<button type="submit">go</button>
+							<button type="submit">IR</button>
 						</form>
 					</p>
 				</li>
